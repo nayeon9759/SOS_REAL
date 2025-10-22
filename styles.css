@@ -67,3 +67,17 @@ select,textarea,input[type="text"]{width:100%;padding:8px;border-radius:6px;back
 .footer{margin-top:12px;text-align:center;font-size:12px;color:var(--muted)}
 
 @media(max-width:640px){.options.grid{grid-template-columns:1fr}}
+
+/* 반드시 추가해야 하는 코드 */
+.charts canvas {
+  /* 최소 높이 지정 (그래프가 보이는 최소 크기) */
+  min-height: 250px; 
+  width: 100% !important; /* 너비 100% 강제 적용 */
+  height: auto !important; /* 높이 자동 조절 */
+}
+
+/* 그래프 제목과 캔버스 사이 여백 추가 (선택 사항) */
+.chart-title {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
