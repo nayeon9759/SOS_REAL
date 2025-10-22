@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>반려친구 긴급케어 설문</title>
-  
+
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -23,8 +23,9 @@
       <button class="tab-btn" data-target="submissions">다른 사람 의견 보기</button>
     </nav>
 
+    <!-- 설문 -->
     <section id="survey" class="tab-panel active panel">
-      <form id="petSurveyForm" class="survey-form" autocomplete="off">
+      <form id="petSurveyForm" autocomplete="off">
         <div class="form-card">
           <label class="q">1. 반려동물을 키우시나요? <span class="required">*</span></label>
           <div class="options inline">
@@ -45,7 +46,7 @@
         </div>
 
         <div class="form-card">
-          <label class="q">3. 평소 동물병원 선택 시 가장 우선시하는 기준은 무엇인가요? <span class="required">*</span></label>
+          <label class="q">3. 병원 선택 시 가장 우선시하는 기준은? <span class="required">*</span></label>
           <select name="priorityCriteria" required>
             <option value="">선택하세요</option>
             <option value="비용">비용</option>
@@ -57,41 +58,27 @@
         </div>
 
         <div class="form-card">
-          <label class="q">4. 응급 상황에서 우려되는 점과, 필요한 서비스 기능은 무엇인가요?” <span class="required">*</span></label>
-          <textarea name="concernAndFeature" rows="5" placeholder="예: 야간 응급비용이 불투명 → 가격 투명성 & 예상비용 계산 기능" required></textarea>
+          <label class="q">4. 응급 상황에서 우려되는 점과 필요한 서비스는?</label>
+          <textarea name="concernAndFeature" rows="4" placeholder="예: 야간 응급비용이 불투명 → 가격 투명성 & 예상비용 계산 기능"></textarea>
         </div>
 
         <div class="form-card">
-          <label class="q">5. 응급 상황 시 병원 정보에서 '가장 중요한 정보(1순위)'와 '두 번째로 중요한 정보(2순위)'를 선택해주세요. <span class="required">*</span></label>
-          <div class="priority-grid">
-            <div>
-              <label class="small">1순위</label>
-              <select name="priority1" required>
-                <option value="">선택</option>
-                <option value="현재 운영 여부">A. 현재 운영 여부</option>
-                <option value="주차 가능 여부">B. 주차 가능 여부</option>
-                <option value="주요 진료 과목">C. 주요 진료 과목</option>
-              </select>
-            </div>
-            <div>
-              <label class="small">2순위</label>
-              <select name="priority2" required>
-                <option value="">선택</option>
-                <option value="현재 운영 여부">A. 현재 운영 여부</option>
-                <option value="주차 가능 여부">B. 주차 가능 여부</option>
-                <option value="주요 진료 과목">C. 주요 진료 과목</option>
-              </select>
-            </div>
-          </div>
+          <label class="q">5. 응급 시 가장 중요한 정보는?</label>
+          <select name="priority1" required>
+            <option value="">1순위 선택</option>
+            <option value="현재 운영 여부">A. 현재 운영 여부</option>
+            <option value="주차 가능 여부">B. 주차 가능 여부</option>
+            <option value="주요 진료 과목">C. 주요 진료 과목</option>
+          </select>
         </div>
 
         <div class="form-card">
-          <label class="q">6. 반려동물 응급 시 최대 지불 의향 금액 범위는? <span class="required">*</span></label>
+          <label class="q">6. 응급 시 지불 의향 금액 범위는? <span class="required">*</span></label>
           <div class="options grid">
-            <label><input type="radio" name="priceRange" value="50만원 미만" required> A. 50만원 미만</label>
-            <label><input type="radio" name="priceRange" value="50만원 ~ 100만원"> B. 50만원 ~ 100만원</label>
-            <label><input type="radio" name="priceRange" value="100만원 ~ 200만원"> C. 100만원 ~ 200만원</label>
-            <label><input type="radio" name="priceRange" value="200만원 이상"> D. 200만원 이상</label>
+            <label><input type="radio" name="priceRange" value="50만원 미만" required> 50만원 미만</label>
+            <label><input type="radio" name="priceRange" value="50만원 ~ 100만원"> 50~100만원</label>
+            <label><input type="radio" name="priceRange" value="100만원 ~ 200만원"> 100~200만원</label>
+            <label><input type="radio" name="priceRange" value="200만원 이상"> 200만원 이상</label>
           </div>
         </div>
 
@@ -100,23 +87,22 @@
           <button type="reset" class="btn ghost">초기화</button>
         </div>
 
-        <div id="msg" class="msg" aria-live="polite"></div>
+        <div id="msg"></div>
       </form>
     </section>
 
+    <!-- 안내 -->
     <section id="guide" class="tab-panel panel">
-      <article class="guide-card">
-        <h3>설문 안내 & 개인정보</h3>
-        <p>이 설문은 반려동물 응급 대응 서비스 개선을 위한 조사입니다. 제출된 응답은 익명으로 기록됩니다.</p>
-      </article>
+      <div class="guide-card">
+        <h3>설문 안내</h3>
+        <p>응급 서비스 개선을 위한 익명 조사입니다.</p>
+      </div>
     </section>
 
+    <!-- 제출 목록 + 그래프 -->
     <section id="submissions" class="tab-panel panel">
-      <div class="panel-head">
-        <h3>최근 제출된 의견</h3>
-      </div>
       <div id="submissionsList" class="submissions-list">
-        <div class="placeholder">아직 제출된 기록이 없습니다.</div>
+        <div class="placeholder">제출된 기록이 없습니다.</div>
       </div>
 
       <div class="charts">
@@ -128,10 +114,11 @@
     </section>
 
     <footer class="footer">
-      <small>© 반려친구 긴급케어 · 설문용 데모 페이지</small>
+      <small>© 반려친구 긴급케어 설문</small>
     </footer>
   </main>
 
   <script src="script.js"></script>
 </body>
 </html>
+
