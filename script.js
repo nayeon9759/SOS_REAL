@@ -8,26 +8,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const regionOtherInput = document.querySelector('input[name="regionOther"]');
   const tabBtns = document.querySelectorAll(".tab-btn");
 
-  let localSubmissions = []; // 서버에서 불러온 전체 데이터
-  
-  // ⭐️ 핵심 수정: Chart 인스턴스를 저장할 변수를 확실하게 Map으로 관리
-  const chartInstances = new Map(); 
+  let localSubmissions = [];
+  const chartInstances = new Map(); // 차트 인스턴스 관리용
 
   const keyMap = {
-    hasPet: "반려동물 보유",
-    region: "지역",
-    regionOther: "직접 입력 지역",
-    priorityCriteria: "병원 선택 기준",
-    concernAndFeature: "불만/필요 기능",
-    priority1: "1순위 정보",
-    priority2: "2순위 정보",
-    priceRange: "최대 지불 의향"
+    hasPet: "반려동물 보유", region: "지역", regionOther: "직접 입력 지역",
+    priorityCriteria: "병원 선택 기준", concernAndFeature: "불만/필요 기능",
+    priority1: "1순위 정보", priority2: "2순위 정보", priceRange: "최대 지불 의향"
   };
 
   /**
-   * 2. 서버에서 최신 데이터를 가져와 localSubmissions를 갱신하고, 화면을 다시 그리는 핵심 함수
+   * 2. 서버에서 최신 데이터를 가져와 localSubmissions를 갱신
    */
-  const fetchSubmissions = async () => {
+  const fetchSubmissions = async (render=false) => { // render 플래그 추가
     try {
       const uniqueApiUrl = `${API_URL}?t=${new Date().getTime()}`;
       submissionsList.innerHTML = '<div class="placeholder">제출된 기록을 불러오는 중입니다...</div>';
@@ -39,10 +32,9 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (Array.isArray(data)) {
         localSubmissions = data; 
-        renderSubmissions(); 
-        // ⭐️ 데이터 로드 직후 그래프 갱신 (탭 활성화 여부 확인)
-        if (document.querySelector('.tab-btn[data-target="submissions"]').classList.contains('active')) {
-            renderCharts();
+        renderSubmissions(); 
+        if (render) { // ⭐️ render 플래그가 true일 때만 차트 갱신
+          renderCharts();
         }
       } else {
         submissionsList.innerHTML = '<div class="placeholder">데이터 로딩 실패: 서버 응답 형식이 올바르지 않습니다.</div>';
@@ -54,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
 
-  // 3. 폼 제출 (POST 후, 전체 데이터 재요청 로직 포함)
+  // 3. 폼 제출
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     msg.textContent = "✅ 제출 중...";
@@ -65,16 +57,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       await fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
       msg.textContent = "💌 제출이 완료되었습니다! 최신 데이터로 그래프를 갱신합니다.";
       
-      await fetchSubmissions(); 
-
+      await fetchSubmissions(true); // ⭐️ 제출 후 바로 차트 렌더링 요청
       form.reset();
       regionOtherInput.style.display = "none";
       
@@ -83,12 +72,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (error) {
       msg.textContent = "⚠️ 서버 응답 오류 발생. 데이터 갱신을 시도합니다.";
-      await fetchSubmissions(); 
+      await fetchSubmissions(true);
       document.querySelector('.tab-btn[data-target="submissions"]').click();
     }
   });
 
-  // 4. submissions 렌더링
+  // 4. submissions 렌더링 (이전과 동일)
   const renderSubmissions = () => {
     submissionsList.innerHTML = "";
     
@@ -110,9 +99,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // 5. 그래프 렌더링 (최종 수정)
+  // 5. 그래프 렌더링 (이전과 동일)
   const renderCharts = () => {
-    // 1. 데이터 집계
     const regionCount = {};
     const priceCount = {};
 
@@ -122,12 +110,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (sub.priceRange) priceCount[sub.priceRange] = (priceCount[sub.priceRange] || 0) + 1;
     });
 
-    // 2. 차트 그리기 헬퍼 함수
     const renderBarChart = (ctxId, labels, data, color) => {
-      const ctx = document.getElementById(ctxId)?.getContext("2d");
-      if (!ctx) return; 
+      // ⭐️ 캔버스 엘리먼트가 실제로 존재하는지 확인
+      const canvasEl = document.getElementById(ctxId);
+      if (!canvasEl) return;
+      
+      const ctx = canvasEl.getContext("2d");
+      if (!ctx) return; 
 
-      // ⭐️ 핵심 수정: Map에서 기존 인스턴스를 찾아 파괴하여 중첩 오류 방지
       if (chartInstances.has(ctxId)) {
         chartInstances.get(ctxId).destroy();
         chartInstances.delete(ctxId);
@@ -136,16 +126,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const newChart = new Chart(ctx, {
         type: "bar",
         data: { labels: labels, datasets: [{ label: "응답 수", data: data, backgroundColor: color }] },
-        options: { 
-            responsive: true, 
+        options: { 
+            responsive: true, 
             plugins: { legend: { display: false } },
-            scales: { 
-                y: { 
-                    beginAtZero: true, 
+            scales: { 
+                y: { 
+                    beginAtZero: true, 
                     suggestedMin: 0,
-                    // ⭐️ Y축 정수 단위 강제 설정 (0.1, 0.2 단위 오류 해결)
-                    ticks: { stepSize: 1 } 
-                } 
+                    ticks: { stepSize: 1 } 
+                } 
             }
         }
       });
@@ -153,7 +142,6 @@ document.addEventListener("DOMContentLoaded", () => {
       chartInstances.set(ctxId, newChart);
     };
 
-    // ⭐️ 핵심 수정: 가격 순서 정의 (데이터가 순서대로 표시되도록 라벨을 강제)
     const priceLabelsOrdered = ["50만원 미만", "50만원 ~ 100만원", "100만원 ~ 200만원", "200만원 이상"];
     const priceDataOrdered = priceLabelsOrdered.map(label => priceCount[label] || 0);
 
@@ -161,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderBarChart("priceChart", priceLabelsOrdered, priceDataOrdered, "rgba(255,159,67,0.7)");
   };
 
-  // 6. 탭 클릭 이벤트 (탭 전환 및 submissions 탭 클릭 시 서버 데이터 재요청)
+  // 6. 탭 클릭 이벤트 (⭐️ 탭 클릭 시 차트 렌더링을 강제 요청)
   tabBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       tabBtns.forEach(b => b.classList.remove("active"));
@@ -171,16 +159,18 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById(btn.dataset.target).classList.add("active");
 
       if (btn.dataset.target === "submissions") {
-        fetchSubmissions(); // 탭 클릭 시에도 최신 데이터 강제 로드
+        // ⭐️ 탭 클릭 시 이미 불러온 데이터로 일단 차트만 렌더링하고, 이후에 서버 데이터를 갱신 (더 빠른 UI 피드백)
+        renderCharts(); 
+        fetchSubmissions(true); // 서버 데이터를 새로 불러오고 갱신
       }
     });
   });
 
-  // 7. 초기 서버 데이터 로드 (페이지 로드 시 데이터 한번 가져오기)
-  // 이 로드 시점에는 submissions 탭이 활성화되지 않으므로, fetchSubmissions 내부에서 renderCharts를 호출하지 않음
-  fetchSubmissions(); 
+  // 7. 초기 서버 데이터 로드
+  // 초기 로드 시에는 차트 렌더링을 요청하지 않고, 탭 클릭 시에 렌더링되도록 함
+  fetchSubmissions(false); 
 
-  // "기타" 입력 토글
+  // "기타" 입력 토글 (이전과 동일)
   document.querySelectorAll('input[name="region"]').forEach(radio => {
     radio.addEventListener('change', () => {
       if (radio.value === "기타") {
